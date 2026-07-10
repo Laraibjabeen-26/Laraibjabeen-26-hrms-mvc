@@ -1,0 +1,57 @@
+@{
+    ViewData["Title"] = "Dashboard";
+}
+<h2>HRMS Dashboard</h2>
+
+<div class="row">
+    <div class="col-md-3">
+        <div class="card p-3">
+            <h5>Total Employees</h5>
+            <h3>@ViewBag.TotalEmployees</h3>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card p-3">
+            <h5>Active Employees</h5>
+            <h3>@ViewBag.ActiveEmployees</h3>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card p-3">
+            <h5>Departments</h5>
+            <h3>@ViewBag.TotalDepartments</h3>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card p-3">
+            <h5>Net Payroll This Month</h5>
+            <h3>@string.Format("{0:N2}", ViewBag.TotalPayrollThisMonth)</h3>
+        </div>
+    </div>
+</div>
+
+<div class="mt-4">
+    <canvas id="payrollChart" width="800" height="300"></canvas>
+</div>
+
+@section Scripts{
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        const labels = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(ViewBag.MonthLabels));
+        const data = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(ViewBag.MonthlyPayroll));
+
+        const ctx = document.getElementById('payrollChart');
+        new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Total Net Salary',
+                    data: data,
+                    borderColor: 'rgb(75, 192, 192)',
+                    tension: 0.2
+                }]
+            }
+        });
+    </script>
+}

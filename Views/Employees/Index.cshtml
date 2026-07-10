@@ -1,0 +1,49 @@
+@model IEnumerable<HRMS.Mvc.Models.Employee>
+@{
+    ViewData["Title"] = "Employees";
+}
+
+<h2>Employees</h2>
+
+<p>
+    <a class="btn btn-primary" asp-action="Create">Add Employee</a>
+</p>
+
+@if (TempData["Success"] != null) { <div class="alert alert-success">@TempData["Success"]</div> }
+@if (TempData["Error"] != null) { <div class="alert alert-danger">@TempData["Error"]</div> }
+
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>EmployeeID</th>
+            <th>Full Name</th>
+            <th>Department</th>
+            <th>Designation</th>
+            <th>Basic Salary</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+@foreach (var item in Model) {
+    <tr>
+        <td>@item.EmployeeID</td>
+        <td>@item.FirstName @item.LastName</td>
+        <td>@(item.Department?.DepartmentName ?? "")</td>
+        <td>@(item.Designation?.DesignationName ?? "")</td>
+        <td>@item.BasicSalary.ToString("N2")</td>
+        <td>
+            <a class="btn btn-sm btn-info" asp-action="Details" asp-route-id="@item.EmployeeID">Details</a>
+            <a class="btn btn-sm btn-warning" asp-action="Edit" asp-route-id="@item.EmployeeID">Edit</a>
+            <a class="btn btn-sm btn-danger" asp-action="Delete" asp-route-id="@item.EmployeeID">Delete</a>
+
+            <form asp-action="GeneratePayroll" method="post" style="display:inline-block;margin-left:6px">
+                <input type="hidden" name="employeeId" value="@item.EmployeeID" />
+                <input type="number" name="month" value="@DateTime.Now.Month" min="1" max="12" style="width:70px" />
+                <input type="number" name="year" value="@DateTime.Now.Year" style="width:90px" />
+                <button class="btn btn-sm btn-secondary" type="submit">Generate Payroll</button>
+            </form>
+        </td>
+    </tr>
+}
+    </tbody>
+</table>
