@@ -1,0 +1,13 @@
+bin/
+obj/
+.vscode/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+appsettings.*.json
+.env
+*.vs/
+wwwroot/lib/
+*.db
+*.log

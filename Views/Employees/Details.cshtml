@@ -1,0 +1,20 @@
+@model HRMS.Mvc.Models.Employee
+@{
+    ViewData["Title"] = "Employee Details";
+}
+<h2>Employee Details</h2>
+
+<div>
+    <dl class="row">
+        <dt class="col-sm-2">Full Name</dt>
+        <dd class="col-sm-10">@Model.FirstName @Model.LastName</dd>
+        <dt class="col-sm-2">Department</dt>
+        <dd class="col-sm-10">@Model.Department?.DepartmentName</dd>
+        <dt class="col-sm-2">Designation</dt>
+        <dd class="col-sm-10">@Model.Designation?.DesignationName</dd>
+        <dt class="col-sm-2">Salary</dt>
+        <dd class="col-sm-10">@Model.BasicSalary.ToString("N2")</dd>
+    </dl>
+
+    <a asp-action="Index" class="btn btn-secondary">Back</a>
+</div>

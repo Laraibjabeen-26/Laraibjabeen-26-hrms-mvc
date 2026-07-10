@@ -1,0 +1,66 @@
+@model HRMS.Mvc.Models.Employee
+
+<div class="form-row">
+    <div class="form-group col-md-6">
+        <label asp-for="FirstName"></label>
+        <input asp-for="FirstName" class="form-control" />
+        <span asp-validation-for="FirstName" class="text-danger"></span>
+    </div>
+    <div class="form-group col-md-6">
+        <label asp-for="LastName"></label>
+        <input asp-for="LastName" class="form-control" />
+        <span asp-validation-for="LastName" class="text-danger"></span>
+    </div>
+</div>
+
+<div class="form-row">
+    <div class="form-group col-md-2">
+        <label asp-for="Gender"></label>
+        <select asp-for="Gender" class="form-control">
+            <option value="M">M</option>
+            <option value="F">F</option>
+        </select>
+    </div>
+    <div class="form-group col-md-3">
+        <label asp-for="DateOfBirth"></label>
+        <input asp-for="DateOfBirth" type="date" class="form-control" />
+    </div>
+    <div class="form-group col-md-3">
+        <label asp-for="DateOfJoining"></label>
+        <input asp-for="DateOfJoining" type="date" class="form-control" />
+    </div>
+    <div class="form-group col-md-4">
+        <label asp-for="BasicSalary"></label>
+        <input asp-for="BasicSalary" class="form-control" />
+    </div>
+</div>
+
+<div class="form-row">
+    <div class="form-group col-md-6">
+        <label asp-for="DepartmentID">Department</label>
+        <select asp-for="DepartmentID" class="form-control" asp-items="new SelectList(ViewData["Departments"] as IEnumerable<HRMS.Mvc.Models.Department>, "DepartmentID", "DepartmentName")">
+            <option value="">-- Select --</option>
+        </select>
+    </div>
+    <div class="form-group col-md-6">
+        <label asp-for="DesignationID">Designation</label>
+        <select asp-for="DesignationID" class="form-control" asp-items="new SelectList(ViewData["Designations"] as IEnumerable<HRMS.Mvc.Models.Designation>, "DesignationID", "DesignationName")">
+            <option value="">-- Select --</option>
+        </select>
+    </div>
+</div>
+
+<div class="form-row">
+    <div class="form-group col-md-6">
+        <label asp-for="Email"></label>
+        <input asp-for="Email" class="form-control" />
+    </div>
+    <div class="form-group col-md-4">
+        <label asp-for="Phone"></label>
+        <input asp-for="Phone" class="form-control" />
+    </div>
+    <div class="form-group col-md-2">
+        <label asp-for="IsActive"></label><br />
+        <input asp-for="IsActive" type="checkbox" />
+    </div>
+</div>
