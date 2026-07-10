@@ -1,66 +1,92 @@
 @model HRMS.Mvc.Models.Employee
+@{
+    var departments = ViewData["Departments"] as IEnumerable<HRMS.Mvc.Models.Department>;
+    var designations = ViewData["Designations"] as IEnumerable<HRMS.Mvc.Models.Designation>;
+}
 
-<div class="form-row">
-    <div class="form-group col-md-6">
-        <label asp-for="FirstName"></label>
-        <input asp-for="FirstName" class="form-control" />
-        <span asp-validation-for="FirstName" class="text-danger"></span>
-    </div>
-    <div class="form-group col-md-6">
-        <label asp-for="LastName"></label>
-        <input asp-for="LastName" class="form-control" />
-        <span asp-validation-for="LastName" class="text-danger"></span>
-    </div>
-</div>
+<div class="form-sections">
+    <section class="form-section">
+        <div class="form-section-head">
+            <span class="form-section-num">01</span>
+            <div>
+                <h3>Personal details</h3>
+                <p>Identity and contact information</p>
+            </div>
+        </div>
+        <div class="form-grid">
+            <div class="field">
+                <label asp-for="FirstName">First name</label>
+                <input asp-for="FirstName" class="form-control" placeholder="e.g. Ayesha" />
+                <span asp-validation-for="FirstName" class="field-error"></span>
+            </div>
+            <div class="field">
+                <label asp-for="LastName">Last name</label>
+                <input asp-for="LastName" class="form-control" placeholder="e.g. Khan" />
+                <span asp-validation-for="LastName" class="field-error"></span>
+            </div>
+            <div class="field">
+                <label asp-for="Gender">Gender</label>
+                <select asp-for="Gender" class="form-control">
+                    <option value="M">Male</option>
+                    <option value="F">Female</option>
+                </select>
+            </div>
+            <div class="field">
+                <label asp-for="DateOfBirth">Date of birth</label>
+                <input asp-for="DateOfBirth" type="date" class="form-control" />
+            </div>
+            <div class="field">
+                <label asp-for="Email">Email</label>
+                <input asp-for="Email" class="form-control" placeholder="name@company.com" />
+            </div>
+            <div class="field">
+                <label asp-for="Phone">Phone</label>
+                <input asp-for="Phone" class="form-control" placeholder="+92 300 0000000" />
+            </div>
+            <div class="field field-span-2">
+                <label class="toggle-label">Employment status</label>
+                <label class="toggle">
+                    <input asp-for="IsActive" type="checkbox" />
+                    <span class="toggle-track"></span>
+                    <span class="toggle-text">Active employee</span>
+                </label>
+            </div>
+        </div>
+    </section>
 
-<div class="form-row">
-    <div class="form-group col-md-2">
-        <label asp-for="Gender"></label>
-        <select asp-for="Gender" class="form-control">
-            <option value="M">M</option>
-            <option value="F">F</option>
-        </select>
-    </div>
-    <div class="form-group col-md-3">
-        <label asp-for="DateOfBirth"></label>
-        <input asp-for="DateOfBirth" type="date" class="form-control" />
-    </div>
-    <div class="form-group col-md-3">
-        <label asp-for="DateOfJoining"></label>
-        <input asp-for="DateOfJoining" type="date" class="form-control" />
-    </div>
-    <div class="form-group col-md-4">
-        <label asp-for="BasicSalary"></label>
-        <input asp-for="BasicSalary" class="form-control" />
-    </div>
-</div>
-
-<div class="form-row">
-    <div class="form-group col-md-6">
-        <label asp-for="DepartmentID">Department</label>
-        <select asp-for="DepartmentID" class="form-control" asp-items="new SelectList(ViewData["Departments"] as IEnumerable<HRMS.Mvc.Models.Department>, "DepartmentID", "DepartmentName")">
-            <option value="">-- Select --</option>
-        </select>
-    </div>
-    <div class="form-group col-md-6">
-        <label asp-for="DesignationID">Designation</label>
-        <select asp-for="DesignationID" class="form-control" asp-items="new SelectList(ViewData["Designations"] as IEnumerable<HRMS.Mvc.Models.Designation>, "DesignationID", "DesignationName")">
-            <option value="">-- Select --</option>
-        </select>
-    </div>
-</div>
-
-<div class="form-row">
-    <div class="form-group col-md-6">
-        <label asp-for="Email"></label>
-        <input asp-for="Email" class="form-control" />
-    </div>
-    <div class="form-group col-md-4">
-        <label asp-for="Phone"></label>
-        <input asp-for="Phone" class="form-control" />
-    </div>
-    <div class="form-group col-md-2">
-        <label asp-for="IsActive"></label><br />
-        <input asp-for="IsActive" type="checkbox" />
-    </div>
+    <section class="form-section">
+        <div class="form-section-head">
+            <span class="form-section-num">02</span>
+            <div>
+                <h3>Role &amp; compensation</h3>
+                <p>Department, designation, and salary</p>
+            </div>
+        </div>
+        <div class="form-grid">
+            <div class="field">
+                <label asp-for="DateOfJoining">Date of joining</label>
+                <input asp-for="DateOfJoining" type="date" class="form-control" />
+            </div>
+            <div class="field">
+                <label asp-for="DepartmentID">Department</label>
+                <select asp-for="DepartmentID" class="form-control" asp-items="@(new SelectList(departments, "DepartmentID", "DepartmentName"))">
+                    <option value="">Select department</option>
+                </select>
+            </div>
+            <div class="field">
+                <label asp-for="DesignationID">Designation</label>
+                <select asp-for="DesignationID" class="form-control" asp-items="@(new SelectList(designations, "DesignationID", "DesignationName"))">
+                    <option value="">Select designation</option>
+                </select>
+            </div>
+            <div class="field">
+                <label asp-for="BasicSalary">Basic salary</label>
+                <div class="input-affix">
+                    <span class="affix">PKR</span>
+                    <input asp-for="BasicSalary" class="form-control" placeholder="0.00" />
+                </div>
+                <span asp-validation-for="BasicSalary" class="field-error"></span>
+            </div>
+        </div>
+    </section>
 </div>

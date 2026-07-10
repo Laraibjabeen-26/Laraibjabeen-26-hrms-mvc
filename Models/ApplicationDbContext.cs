@@ -18,7 +18,24 @@ namespace HRMS.Mvc.Models
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
-            // if you prefer database-first, run scaffolding locally to replace these models
+
+            modelBuilder.Entity<SalaryAllowance>(e =>
+            {
+                e.HasOne(x => x.AllowanceType).WithMany().HasForeignKey(x => x.AllowanceTypeID);
+                e.HasOne(x => x.Employee).WithMany().HasForeignKey(x => x.EmployeeID);
+            });
+
+            modelBuilder.Entity<SalaryDeduction>(e =>
+            {
+                e.HasOne(x => x.DeductionType).WithMany().HasForeignKey(x => x.DeductionTypeID);
+                e.HasOne(x => x.Employee).WithMany().HasForeignKey(x => x.EmployeeID);
+            });
+
+            modelBuilder.Entity<Payroll>(e =>
+            {
+                e.ToTable("Payroll");
+                e.HasOne(x => x.Employee).WithMany().HasForeignKey(x => x.EmployeeID);
+            });
         }
     }
 }

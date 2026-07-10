@@ -1,20 +1,51 @@
 @model HRMS.Mvc.Models.Employee
 @{
     ViewData["Title"] = "Employee Details";
+    ViewData["Subtitle"] = "Full profile record";
 }
-<h2>Employee Details</h2>
 
-<div>
-    <dl class="row">
-        <dt class="col-sm-2">Full Name</dt>
-        <dd class="col-sm-10">@Model.FirstName @Model.LastName</dd>
-        <dt class="col-sm-2">Department</dt>
-        <dd class="col-sm-10">@Model.Department?.DepartmentName</dd>
-        <dt class="col-sm-2">Designation</dt>
-        <dd class="col-sm-10">@Model.Designation?.DesignationName</dd>
-        <dt class="col-sm-2">Salary</dt>
-        <dd class="col-sm-10">@Model.BasicSalary.ToString("N2")</dd>
-    </dl>
+<div class="page-form">
+    <div class="form-hero compact">
+        <div class="form-hero-copy">
+            <p class="eyebrow">Profile · #@Model.EmployeeID</p>
+            <h2>@Model.FirstName @Model.LastName</h2>
+            <p>
+                <span class="status-pill @(Model.IsActive ? "on" : "off")">@(Model.IsActive ? "Active" : "Inactive")</span>
+                @(Model.Designation?.DesignationName ?? "No designation") · @(Model.Department?.DepartmentName ?? "No department")
+            </p>
+        </div>
+        <div class="form-hero-actions">
+            <a asp-action="Edit" asp-route-id="@Model.EmployeeID" class="btn btn-primary">Edit</a>
+            <a asp-action="Index" class="btn btn-secondary">Back</a>
+        </div>
+    </div>
 
-    <a asp-action="Index" class="btn btn-secondary">Back</a>
+    <div class="detail-grid">
+        <div class="detail-card">
+            <h3>Contact</h3>
+            <dl class="detail-list">
+                <dt>Email</dt>
+                <dd>@(string.IsNullOrWhiteSpace(Model.Email) ? "—" : Model.Email)</dd>
+                <dt>Phone</dt>
+                <dd>@(string.IsNullOrWhiteSpace(Model.Phone) ? "—" : Model.Phone)</dd>
+                <dt>Gender</dt>
+                <dd>@(Model.Gender == "F" ? "Female" : Model.Gender == "M" ? "Male" : "—")</dd>
+                <dt>Date of birth</dt>
+                <dd>@(Model.DateOfBirth?.ToString("dd MMM yyyy") ?? "—")</dd>
+            </dl>
+        </div>
+        <div class="detail-card">
+            <h3>Employment</h3>
+            <dl class="detail-list">
+                <dt>Joined</dt>
+                <dd>@(Model.DateOfJoining?.ToString("dd MMM yyyy") ?? "—")</dd>
+                <dt>Department</dt>
+                <dd>@(Model.Department?.DepartmentName ?? "—")</dd>
+                <dt>Designation</dt>
+                <dd>@(Model.Designation?.DesignationName ?? "—")</dd>
+                <dt>Basic salary</dt>
+                <dd class="money">PKR @Model.BasicSalary.ToString("N2")</dd>
+            </dl>
+        </div>
+    </div>
 </div>

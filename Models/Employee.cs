@@ -69,6 +69,9 @@ namespace HRMS.Mvc.Models
         [Column(TypeName = "decimal(10,2)")]
         public decimal Amount { get; set; }
         public int? PayrollID { get; set; }
+
+        public AllowanceType? AllowanceType { get; set; }
+        public Employee? Employee { get; set; }
     }
 
     public class SalaryDeduction
@@ -82,6 +85,9 @@ namespace HRMS.Mvc.Models
         [Column(TypeName = "decimal(10,2)")]
         public decimal Amount { get; set; }
         public int? PayrollID { get; set; }
+
+        public DeductionType? DeductionType { get; set; }
+        public Employee? Employee { get; set; }
     }
 
     public class Payroll
@@ -100,5 +106,7 @@ namespace HRMS.Mvc.Models
         [Column(TypeName = "decimal(10,2)")]
         public decimal NetSalary { get; set; }
         public DateTime? PaymentDate { get; set; }
+
+        public Employee? Employee { get; set; }
     }
 }

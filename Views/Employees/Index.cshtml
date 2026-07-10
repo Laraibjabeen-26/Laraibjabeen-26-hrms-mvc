@@ -1,49 +1,77 @@
 @model IEnumerable<HRMS.Mvc.Models.Employee>
 @{
     ViewData["Title"] = "Employees";
+    ViewData["Subtitle"] = "Directory, roles, and payroll actions";
 }
 
-<h2>Employees</h2>
-
-<p>
-    <a class="btn btn-primary" asp-action="Create">Add Employee</a>
-</p>
-
-@if (TempData["Success"] != null) { <div class="alert alert-success">@TempData["Success"]</div> }
-@if (TempData["Error"] != null) { <div class="alert alert-danger">@TempData["Error"]</div> }
-
-<table class="table table-striped">
-    <thead>
-        <tr>
-            <th>EmployeeID</th>
-            <th>Full Name</th>
-            <th>Department</th>
-            <th>Designation</th>
-            <th>Basic Salary</th>
-            <th></th>
-        </tr>
-    </thead>
-    <tbody>
-@foreach (var item in Model) {
-    <tr>
-        <td>@item.EmployeeID</td>
-        <td>@item.FirstName @item.LastName</td>
-        <td>@(item.Department?.DepartmentName ?? "")</td>
-        <td>@(item.Designation?.DesignationName ?? "")</td>
-        <td>@item.BasicSalary.ToString("N2")</td>
-        <td>
-            <a class="btn btn-sm btn-info" asp-action="Details" asp-route-id="@item.EmployeeID">Details</a>
-            <a class="btn btn-sm btn-warning" asp-action="Edit" asp-route-id="@item.EmployeeID">Edit</a>
-            <a class="btn btn-sm btn-danger" asp-action="Delete" asp-route-id="@item.EmployeeID">Delete</a>
-
-            <form asp-action="GeneratePayroll" method="post" style="display:inline-block;margin-left:6px">
-                <input type="hidden" name="employeeId" value="@item.EmployeeID" />
-                <input type="number" name="month" value="@DateTime.Now.Month" min="1" max="12" style="width:70px" />
-                <input type="number" name="year" value="@DateTime.Now.Year" style="width:90px" />
-                <button class="btn btn-sm btn-secondary" type="submit">Generate Payroll</button>
-            </form>
-        </td>
-    </tr>
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success mb-3">@TempData["Success"]</div>
 }
-    </tbody>
-</table>
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger mb-3">@TempData["Error"]</div>
+}
+
+<div class="table-panel">
+    <div class="table-toolbar">
+        <div>
+            <p class="eyebrow mb-1">Directory</p>
+            <h2 class="section-heading">All employees</h2>
+            <p class="muted mb-0">@Model.Count() people on record</p>
+        </div>
+        <a class="btn btn-primary" asp-action="Create">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" style="margin-right:6px"><path d="M12 5v14M5 12h14"/></svg>
+            Add employee
+        </a>
+    </div>
+
+    <div class="table-responsive">
+        <table class="table data-table align-middle">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Employee</th>
+                    <th>Department</th>
+                    <th>Designation</th>
+                    <th>Salary</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+            @foreach (var item in Model)
+            {
+                var initials = $"{(item.FirstName?.FirstOrDefault().ToString() ?? "")}{(item.LastName?.FirstOrDefault().ToString() ?? "")}".ToUpper();
+                <tr>
+                    <td><span class="id-chip">#@item.EmployeeID</span></td>
+                    <td>
+                        <div class="person-cell">
+                            <span class="person-avatar">@initials</span>
+                            <div>
+                                <strong>@item.FirstName @item.LastName</strong>
+                                <small>@(string.IsNullOrWhiteSpace(item.Email) ? "No email" : item.Email)</small>
+                            </div>
+                        </div>
+                    </td>
+                    <td>@(item.Department?.DepartmentName ?? "—")</td>
+                    <td>@(item.Designation?.DesignationName ?? "—")</td>
+                    <td><span class="money">@item.BasicSalary.ToString("N0")</span></td>
+                    <td>
+                        <div class="row-actions">
+                            <a class="btn btn-sm btn-ghost-action" asp-action="Details" asp-route-id="@item.EmployeeID">View</a>
+                            <a class="btn btn-sm btn-ghost-action" asp-action="Edit" asp-route-id="@item.EmployeeID">Edit</a>
+                            <a class="btn btn-sm btn-danger-soft" asp-action="Delete" asp-route-id="@item.EmployeeID">Delete</a>
+                            <form asp-action="GeneratePayroll" method="post" class="payroll-inline">
+                                <input type="hidden" name="employeeId" value="@item.EmployeeID" />
+                                <input type="number" name="month" value="@DateTime.Now.Month" min="1" max="12" title="Month" aria-label="Payroll month" />
+                                <input type="number" name="year" value="@DateTime.Now.Year" title="Year" aria-label="Payroll year" />
+                                <button class="btn btn-sm btn-secondary" type="submit">Payroll</button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+            }
+            </tbody>
+        </table>
+    </div>
+</div>

@@ -1,11 +1,30 @@
 @model HRMS.Mvc.Models.Employee
 @{
     ViewData["Title"] = "Add Employee";
+    ViewData["Subtitle"] = "Create a new workforce record";
 }
-<h2>Add Employee</h2>
 
-<form asp-action="Create" method="post">
-    @await Html.PartialAsync("_EmployeeForm", Model)
-    <button type="submit" class="btn btn-primary">Save</button>
-    <a asp-action="Index" class="btn btn-secondary">Cancel</a>
-</form>
+<div class="page-form">
+    <div class="form-hero">
+        <div class="form-hero-copy">
+            <p class="eyebrow">Workforce · New hire</p>
+            <h2>Add employee</h2>
+            <p>Capture personal details, role assignment, and starting compensation in one pass.</p>
+        </div>
+        <div class="form-hero-badge" aria-hidden="true">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M19 8v6M22 11h-6"/></svg>
+        </div>
+    </div>
+
+    <form asp-action="Create" method="post" class="employee-form">
+        @await Html.PartialAsync("_EmployeeForm", Model)
+        <div class="form-actions sticky-actions">
+            <a asp-action="Index" class="btn btn-secondary">Cancel</a>
+            <button type="submit" class="btn btn-primary">Save employee</button>
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

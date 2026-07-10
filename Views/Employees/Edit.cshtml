@@ -1,12 +1,241 @@
 @model HRMS.Mvc.Models.Employee
 @{
     ViewData["Title"] = "Edit Employee";
+    ViewData["Subtitle"] = "Update workforce record, allowances, and deductions";
+    var payMonth = (int)(ViewData["PayMonth"] ?? DateTime.Now.Month);
+    var payYear = (int)(ViewData["PayYear"] ?? DateTime.Now.Year);
+    var allowanceTypes = ViewData["AllowanceTypes"] as IEnumerable<HRMS.Mvc.Models.AllowanceType> ?? Enumerable.Empty<HRMS.Mvc.Models.AllowanceType>();
+    var deductionTypes = ViewData["DeductionTypes"] as IEnumerable<HRMS.Mvc.Models.DeductionType> ?? Enumerable.Empty<HRMS.Mvc.Models.DeductionType>();
+    var allowances = ViewBag.Allowances as IEnumerable<HRMS.Mvc.Models.SalaryAllowance> ?? Enumerable.Empty<HRMS.Mvc.Models.SalaryAllowance>();
+    var deductions = ViewBag.Deductions as IEnumerable<HRMS.Mvc.Models.SalaryDeduction> ?? Enumerable.Empty<HRMS.Mvc.Models.SalaryDeduction>();
+    var allowanceTotal = allowances.Sum(a => a.Amount);
+    var deductionTotal = deductions.Sum(d => d.Amount);
 }
-<h2>Edit Employee</h2>
 
-<form asp-action="Edit" method="post">
-    <input type="hidden" asp-for="EmployeeID" />
-    @await Html.PartialAsync("_EmployeeForm", Model)
-    <button type="submit" class="btn btn-primary">Save</button>
-    <a asp-action="Index" class="btn btn-secondary">Cancel</a>
-</form>
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success mb-3">@TempData["Success"]</div>
+}
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger mb-3">@TempData["Error"]</div>
+}
+
+<div class="page-form">
+    <div class="form-hero">
+        <div class="form-hero-copy">
+            <p class="eyebrow">Workforce · Edit #@Model.EmployeeID</p>
+            <h2>@Model.FirstName @Model.LastName</h2>
+            <p>Update personal details, then add allowances or deductions for the selected pay period.</p>
+        </div>
+        <div class="form-hero-badge" aria-hidden="true">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
+        </div>
+    </div>
+
+    <form asp-action="Edit" method="post" class="employee-form">
+        <input type="hidden" asp-for="EmployeeID" />
+        @await Html.PartialAsync("_EmployeeForm", Model)
+        <div class="form-actions sticky-actions">
+            <a asp-action="Index" class="btn btn-secondary">Back to list</a>
+            <button type="submit" class="btn btn-primary">Save employee</button>
+        </div>
+    </form>
+
+    <div class="pay-period-bar">
+        <form method="get" asp-action="Edit" asp-route-id="@Model.EmployeeID" class="period-filter">
+            <div class="field">
+                <label for="month">Pay month</label>
+                <select id="month" name="month" class="form-control" onchange="this.form.submit()">
+                    @for (var m = 1; m <= 12; m++)
+                    {
+                        if (m == payMonth)
+                        {
+                            <option value="@m" selected>@System.Globalization.CultureInfo.CurrentCulture.DateTimeFormat.GetMonthName(m)</option>
+                        }
+                        else
+                        {
+                            <option value="@m">@System.Globalization.CultureInfo.CurrentCulture.DateTimeFormat.GetMonthName(m)</option>
+                        }
+                    }
+                </select>
+            </div>
+            <div class="field">
+                <label for="year">Pay year</label>
+                <input id="year" type="number" name="year" class="form-control" value="@payYear" min="2000" max="2100" onchange="this.form.submit()" />
+            </div>
+        </form>
+        <div class="period-totals">
+            <div class="mini-stat plus">
+                <span>Allowances</span>
+                <strong>@allowanceTotal.ToString("N2")</strong>
+            </div>
+            <div class="mini-stat minus">
+                <span>Deductions</span>
+                <strong>@deductionTotal.ToString("N2")</strong>
+            </div>
+        </div>
+    </div>
+
+    <div class="comp-grid">
+        <section class="form-section comp-panel">
+            <div class="form-section-head">
+                <span class="form-section-num plus">+</span>
+                <div>
+                    <h3>Add allowance</h3>
+                    <p>Extra earnings for @System.Globalization.CultureInfo.CurrentCulture.DateTimeFormat.GetMonthName(payMonth) @payYear</p>
+                </div>
+            </div>
+
+            <form asp-action="AddAllowance" method="post" class="comp-form">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="employeeId" value="@Model.EmployeeID" />
+                <input type="hidden" name="payMonth" value="@payMonth" />
+                <input type="hidden" name="payYear" value="@payYear" />
+                <div class="form-grid comp-fields">
+                    <div class="field field-span-2">
+                        <label for="allowanceTypeId">Allowance type</label>
+                        <select id="allowanceTypeId" name="allowanceTypeId" class="form-control" required>
+                            <option value="">Select allowance</option>
+                            @foreach (var type in allowanceTypes)
+                            {
+                                <option value="@type.AllowanceTypeID">@type.AllowanceTypeName</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="field">
+                        <label for="allowanceAmount">Amount</label>
+                        <div class="input-affix">
+                            <span class="affix">PKR</span>
+                            <input id="allowanceAmount" name="amount" type="number" step="0.01" min="0.01" class="form-control" placeholder="0.00" required />
+                        </div>
+                    </div>
+                    <div class="field field-action">
+                        <label>&nbsp;</label>
+                        <button type="submit" class="btn btn-primary w-100">Add allowance</button>
+                    </div>
+                </div>
+            </form>
+
+            <div class="comp-list">
+                @if (!allowances.Any())
+                {
+                    <p class="empty-note">No allowances for this period yet.</p>
+                }
+                else
+                {
+                    <table class="table data-table compact-table">
+                        <thead>
+                            <tr>
+                                <th>Type</th>
+                                <th>Amount</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        @foreach (var item in allowances)
+                        {
+                            <tr>
+                                <td>@(item.AllowanceType?.AllowanceTypeName ?? $"Type #{item.AllowanceTypeID}")</td>
+                                <td class="money">@item.Amount.ToString("N2")</td>
+                                <td class="text-end">
+                                    <form asp-action="DeleteAllowance" method="post" class="d-inline">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="allowanceId" value="@item.AllowanceID" />
+                                        <input type="hidden" name="employeeId" value="@Model.EmployeeID" />
+                                        <input type="hidden" name="payMonth" value="@payMonth" />
+                                        <input type="hidden" name="payYear" value="@payYear" />
+                                        <button type="submit" class="btn btn-sm btn-danger-soft">Remove</button>
+                                    </form>
+                                </td>
+                            </tr>
+                        }
+                        </tbody>
+                    </table>
+                }
+            </div>
+        </section>
+
+        <section class="form-section comp-panel">
+            <div class="form-section-head">
+                <span class="form-section-num minus">−</span>
+                <div>
+                    <h3>Add deduction</h3>
+                    <p>Salary deductions for @System.Globalization.CultureInfo.CurrentCulture.DateTimeFormat.GetMonthName(payMonth) @payYear</p>
+                </div>
+            </div>
+
+            <form asp-action="AddDeduction" method="post" class="comp-form">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="employeeId" value="@Model.EmployeeID" />
+                <input type="hidden" name="payMonth" value="@payMonth" />
+                <input type="hidden" name="payYear" value="@payYear" />
+                <div class="form-grid comp-fields">
+                    <div class="field field-span-2">
+                        <label for="deductionTypeId">Deduction type</label>
+                        <select id="deductionTypeId" name="deductionTypeId" class="form-control" required>
+                            <option value="">Select deduction</option>
+                            @foreach (var type in deductionTypes)
+                            {
+                                <option value="@type.DeductionTypeID">@type.DeductionTypeName</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="field">
+                        <label for="deductionAmount">Amount</label>
+                        <div class="input-affix">
+                            <span class="affix">PKR</span>
+                            <input id="deductionAmount" name="amount" type="number" step="0.01" min="0.01" class="form-control" placeholder="0.00" required />
+                        </div>
+                    </div>
+                    <div class="field field-action">
+                        <label>&nbsp;</label>
+                        <button type="submit" class="btn btn-secondary w-100">Add deduction</button>
+                    </div>
+                </div>
+            </form>
+
+            <div class="comp-list">
+                @if (!deductions.Any())
+                {
+                    <p class="empty-note">No deductions for this period yet.</p>
+                }
+                else
+                {
+                    <table class="table data-table compact-table">
+                        <thead>
+                            <tr>
+                                <th>Type</th>
+                                <th>Amount</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        @foreach (var item in deductions)
+                        {
+                            <tr>
+                                <td>@(item.DeductionType?.DeductionTypeName ?? $"Type #{item.DeductionTypeID}")</td>
+                                <td class="money">@item.Amount.ToString("N2")</td>
+                                <td class="text-end">
+                                    <form asp-action="DeleteDeduction" method="post" class="d-inline">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="deductionId" value="@item.DeductionID" />
+                                        <input type="hidden" name="employeeId" value="@Model.EmployeeID" />
+                                        <input type="hidden" name="payMonth" value="@payMonth" />
+                                        <input type="hidden" name="payYear" value="@payYear" />
+                                        <button type="submit" class="btn btn-sm btn-danger-soft">Remove</button>
+                                    </form>
+                                </td>
+                            </tr>
+                        }
+                        </tbody>
+                    </table>
+                }
+            </div>
+        </section>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

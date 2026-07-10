@@ -1,0 +1,184 @@
+@model HRMS.Mvc.Models.Payroll
+@{
+    ViewData["Title"] = "Payroll slip";
+    ViewData["Subtitle"] = $"Slip #{Model.PayrollID}";
+    var emp = Model.Employee;
+    var monthName = System.Globalization.CultureInfo.CurrentCulture.DateTimeFormat.GetMonthName(Model.PayMonth);
+    var allowances = ViewBag.Allowances as IEnumerable<HRMS.Mvc.Models.SalaryAllowance> ?? Enumerable.Empty<HRMS.Mvc.Models.SalaryAllowance>();
+    var deductions = ViewBag.Deductions as IEnumerable<HRMS.Mvc.Models.SalaryDeduction> ?? Enumerable.Empty<HRMS.Mvc.Models.SalaryDeduction>();
+    var allowanceTotal = allowances.Sum(a => a.Amount);
+}
+
+<div class="page-form">
+    <div class="form-hero compact">
+        <div class="form-hero-copy">
+            <p class="eyebrow">Payroll · #@Model.PayrollID</p>
+            <h2>@(emp != null ? $"{emp.FirstName} {emp.LastName}" : $"Employee #{Model.EmployeeID}")</h2>
+            <p>
+                @monthName @Model.PayYear
+                · @(emp?.Designation?.DesignationName ?? "No designation")
+                · @(emp?.Department?.DepartmentName ?? "No department")
+            </p>
+        </div>
+        <div class="form-hero-actions">
+            <a asp-action="Index" asp-route-month="@Model.PayMonth" asp-route-year="@Model.PayYear" class="btn btn-secondary">Back to list</a>
+            @if (emp != null)
+            {
+                <a asp-controller="Employees" asp-action="Edit" asp-route-id="@emp.EmployeeID" asp-route-month="@Model.PayMonth" asp-route-year="@Model.PayYear" class="btn btn-primary">Edit employee</a>
+            }
+        </div>
+    </div>
+
+    <div class="stat-grid payroll-slip-stats">
+        <div class="stat-card">
+            <p class="stat-label">Basic salary</p>
+            <p class="stat-value">@Model.BasicSalary.ToString("N0")</p>
+        </div>
+        <div class="stat-card">
+            <p class="stat-label">Gross</p>
+            <p class="stat-value">@Model.GrossSalary.ToString("N0")</p>
+        </div>
+        <div class="stat-card">
+            <p class="stat-label">Deductions</p>
+            <p class="stat-value">@Model.TotalDeductions.ToString("N0")</p>
+        </div>
+        <div class="stat-card highlight">
+            <p class="stat-label">Net salary</p>
+            <p class="stat-value">@Model.NetSalary.ToString("N0")</p>
+        </div>
+    </div>
+
+    <div class="detail-grid">
+        <div class="detail-card">
+            <h3>Employee</h3>
+            <dl class="detail-list">
+                <dt>Name</dt>
+                <dd>@(emp != null ? $"{emp.FirstName} {emp.LastName}" : "—")</dd>
+                <dt>Email</dt>
+                <dd>@(string.IsNullOrWhiteSpace(emp?.Email) ? "—" : emp!.Email)</dd>
+                <dt>Department</dt>
+                <dd>@(emp?.Department?.DepartmentName ?? "—")</dd>
+                <dt>Designation</dt>
+                <dd>@(emp?.Designation?.DesignationName ?? "—")</dd>
+            </dl>
+        </div>
+        <div class="detail-card">
+            <h3>Payment</h3>
+            <dl class="detail-list">
+                <dt>Period</dt>
+                <dd>@monthName @Model.PayYear</dd>
+                <dt>Payment date</dt>
+                <dd>@(Model.PaymentDate?.ToString("dd MMM yyyy") ?? "Not recorded")</dd>
+                <dt>Allowances</dt>
+                <dd class="money">@allowanceTotal.ToString("N2")</dd>
+                <dt>Net pay</dt>
+                <dd class="money net-pay">@Model.NetSalary.ToString("N2")</dd>
+            </dl>
+        </div>
+    </div>
+
+    <div class="comp-grid mt-3">
+        <section class="form-section comp-panel">
+            <div class="form-section-head">
+                <span class="form-section-num plus">+</span>
+                <div>
+                    <h3>Allowances</h3>
+                    <p>Earnings added this period</p>
+                </div>
+            </div>
+            <div class="comp-list">
+                @if (!allowances.Any())
+                {
+                    <p class="empty-note">No allowances linked to this period.</p>
+                }
+                else
+                {
+                    <table class="table data-table compact-table">
+                        <thead>
+                            <tr>
+                                <th>Type</th>
+                                <th class="text-end">Amount</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        @foreach (var item in allowances)
+                        {
+                            <tr>
+                                <td>@(item.AllowanceType?.AllowanceTypeName ?? $"Type #{item.AllowanceTypeID}")</td>
+                                <td class="text-end money">@item.Amount.ToString("N2")</td>
+                            </tr>
+                        }
+                        </tbody>
+                        <tfoot>
+                            <tr>
+                                <th>Total</th>
+                                <th class="text-end money">@allowanceTotal.ToString("N2")</th>
+                            </tr>
+                        </tfoot>
+                    </table>
+                }
+            </div>
+        </section>
+
+        <section class="form-section comp-panel">
+            <div class="form-section-head">
+                <span class="form-section-num minus">−</span>
+                <div>
+                    <h3>Deductions</h3>
+                    <p>Amounts withheld this period</p>
+                </div>
+            </div>
+            <div class="comp-list">
+                @if (!deductions.Any())
+                {
+                    <p class="empty-note">No deductions linked to this period.</p>
+                }
+                else
+                {
+                    <table class="table data-table compact-table">
+                        <thead>
+                            <tr>
+                                <th>Type</th>
+                                <th class="text-end">Amount</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        @foreach (var item in deductions)
+                        {
+                            <tr>
+                                <td>@(item.DeductionType?.DeductionTypeName ?? $"Type #{item.DeductionTypeID}")</td>
+                                <td class="text-end money">@item.Amount.ToString("N2")</td>
+                            </tr>
+                        }
+                        </tbody>
+                        <tfoot>
+                            <tr>
+                                <th>Total</th>
+                                <th class="text-end money">@Model.TotalDeductions.ToString("N2")</th>
+                            </tr>
+                        </tfoot>
+                    </table>
+                }
+            </div>
+        </section>
+    </div>
+
+    <div class="payslip-summary">
+        <div class="payslip-row">
+            <span>Basic salary</span>
+            <strong>@Model.BasicSalary.ToString("N2")</strong>
+        </div>
+        <div class="payslip-row">
+            <span>Gross salary</span>
+            <strong>@Model.GrossSalary.ToString("N2")</strong>
+        </div>
+        <div class="payslip-row">
+            <span>Total deductions</span>
+            <strong class="deduct">− @Model.TotalDeductions.ToString("N2")</strong>
+        </div>
+        <div class="payslip-row net">
+            <span>Net salary</span>
+            <strong>@Model.NetSalary.ToString("N2")</strong>
+        </div>
+    </div>
+</div>

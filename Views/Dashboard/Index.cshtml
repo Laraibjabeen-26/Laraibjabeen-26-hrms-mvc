@@ -1,45 +1,62 @@
 @{
     ViewData["Title"] = "Dashboard";
+    ViewData["Subtitle"] = "Live snapshot of people and payroll";
 }
-<h2>HRMS Dashboard</h2>
 
-<div class="row">
-    <div class="col-md-3">
-        <div class="card p-3">
-            <h5>Total Employees</h5>
-            <h3>@ViewBag.TotalEmployees</h3>
-        </div>
+<div class="dash-intro">
+    <div>
+        <p class="eyebrow">Today</p>
+        <h2 class="dash-heading">Workforce overview</h2>
     </div>
-    <div class="col-md-3">
-        <div class="card p-3">
-            <h5>Active Employees</h5>
-            <h3>@ViewBag.ActiveEmployees</h3>
+    <a class="btn btn-primary" asp-controller="Employees" asp-action="Create">Add employee</a>
+</div>
+
+<div class="stat-grid">
+    <div class="stat-card">
+        <div class="stat-icon people" aria-hidden="true">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>
         </div>
+        <p class="stat-label">Total employees</p>
+        <p class="stat-value">@ViewBag.TotalEmployees</p>
     </div>
-    <div class="col-md-3">
-        <div class="card p-3">
-            <h5>Departments</h5>
-            <h3>@ViewBag.TotalDepartments</h3>
+    <div class="stat-card">
+        <div class="stat-icon active" aria-hidden="true">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="M22 4 12 14.01l-3-3"/></svg>
         </div>
+        <p class="stat-label">Active</p>
+        <p class="stat-value">@ViewBag.ActiveEmployees</p>
     </div>
-    <div class="col-md-3">
-        <div class="card p-3">
-            <h5>Net Payroll This Month</h5>
-            <h3>@string.Format("{0:N2}", ViewBag.TotalPayrollThisMonth)</h3>
+    <div class="stat-card">
+        <div class="stat-icon depts" aria-hidden="true">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21h18M5 21V7l7-4 7 4v14M9 21v-6h6v6"/></svg>
         </div>
+        <p class="stat-label">Departments</p>
+        <p class="stat-value">@ViewBag.TotalDepartments</p>
+    </div>
+    <div class="stat-card highlight">
+        <div class="stat-icon pay" aria-hidden="true">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1v22M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+        </div>
+        <p class="stat-label">Net payroll this month</p>
+        <p class="stat-value">@string.Format("{0:N0}", ViewBag.TotalPayrollThisMonth)</p>
     </div>
 </div>
 
-<div class="mt-4">
-    <canvas id="payrollChart" width="800" height="300"></canvas>
+<div class="chart-panel">
+    <div class="chart-head">
+        <div>
+            <h3>Payroll trend</h3>
+            <p class="muted mb-0">Net salary totals · last 6 months</p>
+        </div>
+    </div>
+    <canvas id="payrollChart" height="100"></canvas>
 </div>
 
-@section Scripts{
+@section Scripts {
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
         const labels = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(ViewBag.MonthLabels));
         const data = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(ViewBag.MonthlyPayroll));
-
         const ctx = document.getElementById('payrollChart');
         new Chart(ctx, {
             type: 'line',
@@ -48,9 +65,31 @@
                 datasets: [{
                     label: 'Total Net Salary',
                     data: data,
-                    borderColor: 'rgb(75, 192, 192)',
-                    tension: 0.2
+                    borderColor: '#1d4ed8',
+                    backgroundColor: 'rgba(29, 78, 216, 0.10)',
+                    fill: true,
+                    tension: 0.4,
+                    pointBackgroundColor: '#1d4ed8',
+                    pointBorderColor: '#fff',
+                    pointBorderWidth: 2,
+                    pointRadius: 5,
+                    pointHoverRadius: 7,
+                    borderWidth: 2.5
                 }]
+            },
+            options: {
+                responsive: true,
+                plugins: { legend: { display: false } },
+                scales: {
+                    x: {
+                        grid: { display: false },
+                        ticks: { color: '#64748b', font: { family: 'Sora', size: 11 } }
+                    },
+                    y: {
+                        grid: { color: 'rgba(15, 23, 42, 0.06)' },
+                        ticks: { color: '#64748b', font: { family: 'Sora', size: 11 } }
+                    }
+                }
             }
         });
     </script>

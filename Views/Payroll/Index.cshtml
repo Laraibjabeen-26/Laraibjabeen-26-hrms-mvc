@@ -1,0 +1,150 @@
+@model IEnumerable<HRMS.Mvc.Models.Payroll>
+@{
+    ViewData["Title"] = "Payroll";
+    ViewData["Subtitle"] = "Generated salary slips by pay period";
+    var payMonth = (int)(ViewData["PayMonth"] ?? DateTime.Now.Month);
+    var payYear = (int)(ViewData["PayYear"] ?? DateTime.Now.Year);
+    var selectedEmployeeId = ViewData["EmployeeId"] as int?;
+    var employees = ViewData["Employees"] as IEnumerable<HRMS.Mvc.Models.Employee> ?? Enumerable.Empty<HRMS.Mvc.Models.Employee>();
+    var monthName = System.Globalization.CultureInfo.CurrentCulture.DateTimeFormat.GetMonthName(payMonth);
+}
+
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success mb-3">@TempData["Success"]</div>
+}
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger mb-3">@TempData["Error"]</div>
+}
+
+<div class="dash-intro">
+    <div>
+        <p class="eyebrow">Compensation</p>
+        <h2 class="dash-heading">Payroll register</h2>
+    </div>
+</div>
+
+<div class="stat-grid payroll-stats">
+    <div class="stat-card">
+        <p class="stat-label">Slips</p>
+        <p class="stat-value">@ViewBag.Count</p>
+    </div>
+    <div class="stat-card">
+        <p class="stat-label">Gross total</p>
+        <p class="stat-value">@(((decimal)ViewBag.TotalGross).ToString("N0"))</p>
+    </div>
+    <div class="stat-card">
+        <p class="stat-label">Deductions</p>
+        <p class="stat-value">@(((decimal)ViewBag.TotalDeductions).ToString("N0"))</p>
+    </div>
+    <div class="stat-card highlight">
+        <p class="stat-label">Net payout</p>
+        <p class="stat-value">@(((decimal)ViewBag.TotalNet).ToString("N0"))</p>
+    </div>
+</div>
+
+<div class="table-panel">
+    <div class="table-toolbar">
+        <div>
+            <h2 class="section-heading">@monthName @payYear</h2>
+            <p class="muted mb-0">Filter by period or employee</p>
+        </div>
+        <form method="get" asp-action="Index" class="period-filter payroll-filter">
+            <div class="field">
+                <label for="month">Month</label>
+                <select id="month" name="month" class="form-control" onchange="this.form.submit()">
+                    @for (var m = 1; m <= 12; m++)
+                    {
+                        if (m == payMonth)
+                        {
+                            <option value="@m" selected>@System.Globalization.CultureInfo.CurrentCulture.DateTimeFormat.GetMonthName(m)</option>
+                        }
+                        else
+                        {
+                            <option value="@m">@System.Globalization.CultureInfo.CurrentCulture.DateTimeFormat.GetMonthName(m)</option>
+                        }
+                    }
+                </select>
+            </div>
+            <div class="field">
+                <label for="year">Year</label>
+                <input id="year" type="number" name="year" class="form-control" value="@payYear" min="2000" max="2100" onchange="this.form.submit()" />
+            </div>
+            <div class="field">
+                <label for="employeeId">Employee</label>
+                <select id="employeeId" name="employeeId" class="form-control" onchange="this.form.submit()">
+                    <option value="">All employees</option>
+                    @foreach (var emp in employees)
+                    {
+                        if (selectedEmployeeId == emp.EmployeeID)
+                        {
+                            <option value="@emp.EmployeeID" selected>@emp.FirstName @emp.LastName</option>
+                        }
+                        else
+                        {
+                            <option value="@emp.EmployeeID">@emp.FirstName @emp.LastName</option>
+                        }
+                    }
+                </select>
+            </div>
+        </form>
+    </div>
+
+    <div class="table-responsive">
+        <table class="table data-table align-middle">
+            <thead>
+                <tr>
+                    <th>Slip #</th>
+                    <th>Employee</th>
+                    <th>Department</th>
+                    <th>Period</th>
+                    <th>Basic</th>
+                    <th>Gross</th>
+                    <th>Deductions</th>
+                    <th>Net</th>
+                    <th>Paid</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+            @if (!Model.Any())
+            {
+                <tr>
+                    <td colspan="10" class="empty-note text-center py-4">No payroll records for this period.</td>
+                </tr>
+            }
+            else
+            {
+                foreach (var item in Model)
+                {
+                    var emp = item.Employee;
+                    var initials = emp == null ? "?" : $"{emp.FirstName?.FirstOrDefault()}{emp.LastName?.FirstOrDefault()}".ToUpper();
+                    <tr>
+                        <td><span class="id-chip">#@item.PayrollID</span></td>
+                        <td>
+                            <div class="person-cell">
+                                <span class="person-avatar">@initials</span>
+                                <div>
+                                    <strong>@(emp != null ? $"{emp.FirstName} {emp.LastName}" : $"Employee #{item.EmployeeID}")</strong>
+                                    <small>ID @item.EmployeeID</small>
+                                </div>
+                            </div>
+                        </td>
+                        <td>@(emp?.Department?.DepartmentName ?? "—")</td>
+                        <td>@item.PayMonth/@item.PayYear</td>
+                        <td class="money">@item.BasicSalary.ToString("N2")</td>
+                        <td class="money">@item.GrossSalary.ToString("N2")</td>
+                        <td class="money text-danger-soft">@item.TotalDeductions.ToString("N2")</td>
+                        <td class="money net-pay">@item.NetSalary.ToString("N2")</td>
+                        <td>@(item.PaymentDate?.ToString("dd MMM yyyy") ?? "—")</td>
+                        <td>
+                            <a class="btn btn-sm btn-ghost-action" asp-action="Details" asp-route-id="@item.PayrollID">View</a>
+                        </td>
+                    </tr>
+                }
+            }
+            </tbody>
+        </table>
+    </div>
+</div>

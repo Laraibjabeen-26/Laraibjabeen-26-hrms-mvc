@@ -57,13 +57,15 @@ namespace HRMS.Mvc.Controllers
             return View(employee);
         }
 
-        public async Task<IActionResult> Edit(int? id)
+        public async Task<IActionResult> Edit(int? id, int? month, int? year)
         {
             if (id == null) return NotFound();
             var employee = await _context.Employees.FindAsync(id);
             if (employee == null) return NotFound();
-            ViewData["Departments"] = _context.Departments.ToList();
-            ViewData["Designations"] = _context.Designations.ToList();
+
+            var payMonth = month ?? DateTime.Now.Month;
+            var payYear = year ?? DateTime.Now.Year;
+            await LoadEditLookupsAsync(employee.EmployeeID, payMonth, payYear);
             return View(employee);
         }
 
@@ -79,17 +81,115 @@ namespace HRMS.Mvc.Controllers
                 {
                     _context.Update(employee);
                     await _context.SaveChangesAsync();
+                    TempData["Success"] = "Employee details saved.";
                 }
                 catch (DbUpdateConcurrencyException)
                 {
                     if (!_context.Employees.Any(e => e.EmployeeID == employee.EmployeeID)) return NotFound();
                     else throw;
                 }
-                return RedirectToAction(nameof(Index));
+                return RedirectToAction(nameof(Edit), new { id });
             }
-            ViewData["Departments"] = _context.Departments.ToList();
-            ViewData["Designations"] = _context.Designations.ToList();
+            await LoadEditLookupsAsync(id, DateTime.Now.Month, DateTime.Now.Year);
             return View(employee);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> AddAllowance(int employeeId, int allowanceTypeId, decimal amount, int payMonth, int payYear)
+        {
+            if (!_context.Employees.Any(e => e.EmployeeID == employeeId)) return NotFound();
+            if (allowanceTypeId <= 0 || amount <= 0)
+            {
+                TempData["Error"] = "Select an allowance type and enter a valid amount.";
+                return RedirectToAction(nameof(Edit), new { id = employeeId, month = payMonth, year = payYear });
+            }
+
+            _context.SalaryAllowances.Add(new SalaryAllowance
+            {
+                EmployeeID = employeeId,
+                AllowanceTypeID = allowanceTypeId,
+                Amount = amount,
+                PayMonth = payMonth,
+                PayYear = payYear
+            });
+            await _context.SaveChangesAsync();
+            TempData["Success"] = "Allowance added.";
+            return RedirectToAction(nameof(Edit), new { id = employeeId, month = payMonth, year = payYear });
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> AddDeduction(int employeeId, int deductionTypeId, decimal amount, int payMonth, int payYear)
+        {
+            if (!_context.Employees.Any(e => e.EmployeeID == employeeId)) return NotFound();
+            if (deductionTypeId <= 0 || amount <= 0)
+            {
+                TempData["Error"] = "Select a deduction type and enter a valid amount.";
+                return RedirectToAction(nameof(Edit), new { id = employeeId, month = payMonth, year = payYear });
+            }
+
+            _context.SalaryDeductions.Add(new SalaryDeduction
+            {
+                EmployeeID = employeeId,
+                DeductionTypeID = deductionTypeId,
+                Amount = amount,
+                PayMonth = payMonth,
+                PayYear = payYear
+            });
+            await _context.SaveChangesAsync();
+            TempData["Success"] = "Deduction added.";
+            return RedirectToAction(nameof(Edit), new { id = employeeId, month = payMonth, year = payYear });
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeleteAllowance(int allowanceId, int employeeId, int payMonth, int payYear)
+        {
+            var item = await _context.SalaryAllowances.FirstOrDefaultAsync(a => a.AllowanceID == allowanceId && a.EmployeeID == employeeId);
+            if (item != null)
+            {
+                _context.SalaryAllowances.Remove(item);
+                await _context.SaveChangesAsync();
+                TempData["Success"] = "Allowance removed.";
+            }
+            return RedirectToAction(nameof(Edit), new { id = employeeId, month = payMonth, year = payYear });
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeleteDeduction(int deductionId, int employeeId, int payMonth, int payYear)
+        {
+            var item = await _context.SalaryDeductions.FirstOrDefaultAsync(d => d.DeductionID == deductionId && d.EmployeeID == employeeId);
+            if (item != null)
+            {
+                _context.SalaryDeductions.Remove(item);
+                await _context.SaveChangesAsync();
+                TempData["Success"] = "Deduction removed.";
+            }
+            return RedirectToAction(nameof(Edit), new { id = employeeId, month = payMonth, year = payYear });
+        }
+
+        private async Task LoadEditLookupsAsync(int employeeId, int payMonth, int payYear)
+        {
+            ViewData["Departments"] = await _context.Departments.ToListAsync();
+            ViewData["Designations"] = await _context.Designations.ToListAsync();
+            ViewData["AllowanceTypes"] = await _context.AllowanceTypes.OrderBy(a => a.AllowanceTypeName).ToListAsync();
+            ViewData["DeductionTypes"] = await _context.DeductionTypes.OrderBy(d => d.DeductionTypeName).ToListAsync();
+            ViewData["PayMonth"] = payMonth;
+            ViewData["PayYear"] = payYear;
+
+            ViewBag.Allowances = await _context.SalaryAllowances
+                .Include(a => a.AllowanceType)
+                .Where(a => a.EmployeeID == employeeId && a.PayMonth == payMonth && a.PayYear == payYear)
+                .OrderByDescending(a => a.AllowanceID)
+                .ToListAsync();
+
+            ViewBag.Deductions = await _context.SalaryDeductions
+                .Include(d => d.DeductionType)
+                .Where(d => d.EmployeeID == employeeId && d.PayMonth == payMonth && d.PayYear == payYear)
+                .OrderByDescending(d => d.DeductionID)
+                .ToListAsync();
         }
 
         public async Task<IActionResult> Delete(int? id)
@@ -128,7 +228,7 @@ namespace HRMS.Mvc.Controllers
             {
                 TempData["Error"] = "Payroll generation failed: " + ex.Message;
             }
-            return RedirectToAction(nameof(Index));
+            return RedirectToAction("Index", "Payroll", new { month, year, employeeId });
         }
     }
 }
