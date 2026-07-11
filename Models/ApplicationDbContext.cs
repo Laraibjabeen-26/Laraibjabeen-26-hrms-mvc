@@ -14,6 +14,7 @@ namespace HRMS.Mvc.Models
         public DbSet<DeductionType> DeductionTypes { get; set; }
         public DbSet<SalaryAllowance> SalaryAllowances { get; set; }
         public DbSet<SalaryDeduction> SalaryDeductions { get; set; }
+        public DbSet<User> Users { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

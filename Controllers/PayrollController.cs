@@ -1,9 +1,11 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using HRMS.Mvc.Models;
+using Microsoft.AspNetCore.Authorization;
 
 namespace HRMS.Mvc.Controllers
 {
+    [Authorize]
     public class PayrollController : Controller
     {
         private readonly ApplicationDbContext _context;
